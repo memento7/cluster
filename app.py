@@ -9,11 +9,6 @@ from connection import get_navernews, get_entities
 from utility import get_similar, filter_quote, Logging
 import memento_settings as MS
 
-DATE_START = datetime(2000, 1, 1)
-DATE_END = datetime(2017, 5, 30)
-DATE_RANGE = timedelta(days=30)
-DATE_JUMP = timedelta(days=15)
-
 #NEED_CONCAT = DATE_JUMP < DATE_RANGE
 def process(keyword: str,
             date_start: str,
@@ -52,19 +47,16 @@ def process(keyword: str,
     del kin
 
 if __name__ == '__main__':
-    Logging.register('kin', '<<KINCluster>>: {}')
+    date_start = datetime(2000, 1, 1)
+    date_end = datetime(2017, 5, 30)
+    date_range = timedelta(days=30)
+    date_jump = timedelta(days=15)
+    keywords = []
 
-    print('cluster started!:', DATE_START, 'to', DATE_END)
-    Logging.logf('kin', 'Start')
-
-    # entities = get_entities()
-    for keyword in MS.KEYWORDS:
-        Logging.logf('kin', 'start keyword: {}'.format(keyword))
-        for day in range(int((DATE_END - DATE_START) / DATE_JUMP)):
-            date_s = DATE_START + DATE_JUMP * day
-            date_e = date_s + DATE_RANGE
-            print('date range', date_s, date_e)
-            Logging.logf('kin', 'date range {} to {}'.format(date_s, date_e))
+    for keyword in keywords:
+        for day in range(int((date_end - date_start) / date_jump)):
+            date_s = date_start + date_jump * day
+            date_e = date_s + date_range
 
             process(**{
                 'keyword': keyword,
