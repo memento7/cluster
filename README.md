@@ -14,6 +14,4 @@ process(keyword, date_start, date_end)
 "
 ```
 
-entry point: `./`
-
 date format: "yyyy.mm.dd"
