@@ -2,8 +2,14 @@ import logging
 
 from collections import Counter
 from itertools import chain
+from os import name
 
+POLYGLOT = name == "POSIX"
+
+if POLYGLOT:
+    from polyglot.text import Text
 from imp import reload
+from nltk import word_tokenize, pos_tag, ne_chunk
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from konlpy.tag import Komoran
@@ -73,3 +79,23 @@ def get_emotion(text, entities, size=5):
     keywords = list(map(lambda x: (x[0][0], x[1]), filter(lambda x: x[0][1] == 'XR', counter)))
     tags = [map(lambda x: (x['tag'], x['value']), ENTITIES[entity]['tags']) for entity in entities]
     return list(filter(lambda x: x[0] not in chain(*tags), keywords))[:size]
+
+def extract_entities(text):
+    nnps = []
+
+    if POLYGLOT:
+        polytext = Text(text)
+        for entity in polytext.entities:
+            nnps.append(entity[0])
+
+    for chunk in ne_chunk(pos_tag(word_tokenize(text))):
+        if len(chunk) == 1 and chunk.label() == 'ORGANIZATION':
+            nnps.append(chunk.leaves()[0][0])
+        elif len(chunk)>1 and str(chunk[1]).startswith('NN'):
+            nnps.append(chunk[0])
+
+    counter = Counter(nnps).most_common()
+    for nnp, count in counter:
+        pos = TAGGER.pos(nnp)
+        if len(pos) == 1 and pos[0][1] == ('NNP'):
+            yield pos[0][0]

@@ -20,10 +20,11 @@ def process(keyword: str,
     if frame.empty:
         return;
 
-    simi_list = [" ".join([a, b, filter_quote(c), filter_quote(d)]) for a, b, c, d in zip(frame['title'],
-                                                                                          frame['content'],
-                                                                                          frame['title_quote'],
-                                                                                          frame['content_quote'])]
+    simi_list = [" ".join([a, b, filter_quote(c), filter_quote(d)])
+                for a, b, c, d in zip(frame['title'],
+                                      frame['content'],
+                                      frame['title_quote'],
+                                      frame['content_quote'])]
     frame.loc[:, 'similar'] = get_similar(keyword, simi_list)
 
     rel_condition = (frame['similar'] > MS.MINIMUM_SIMILAR) & (frame['title'].str.contains(keyword))

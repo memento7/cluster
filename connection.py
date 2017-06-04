@@ -23,7 +23,7 @@ def make_clear(results: list,
     iterable = filter(filter_lambda, map(clear, results))
     return {key_lambda(source): value_lambda(source) for source in iterable}
 
-def get_scroll(query={}, doc_type='', index='information'):
+def get_scroll(query={}, doc_type='', index='memento'):
     array = []
     def _get_scroll(scroll) -> Union[int, list]:
         doc = scroll['hits']['hits']
@@ -52,40 +52,21 @@ def get_navernews(keyword, date_start, date_end):
                             }
                         }, {
                             'term': {
-                                'information.keyword': keyword,
+                                'entities': keyword,
                             }
                         }]
                     }
                 }
-            }, index='news_naver')
+            }, doc_type='News_Naver')
 
-    def info_chain(x):
-        x['keyword'] = x['information']['keyword']
-        x['subkey'] = x['information']['subkey']
-        del x['information']
-        return x
+    def frame_filter(item):
+        del item['MODULE']
+        del item['_id']
+        return item
 
-    return pd.DataFrame(list(map(info_chain, news.values())))
+    return pd.DataFrame(list(map(frame_filter, news.values())))
 
-def get_type_id(query: list, type: str) -> str:
-    wrapper = lambda x: {'match': {x[0]: x[1]}}
-    result = ES.search(index='information', doc_type=type, body={
-        'query': {
-            'bool': {
-                'must': list(map(wrapper, query.items()))
-            }
-        }
-    })
-    if result['hits']['total']:
-        return result['hits']['hits'][0]['_id']
-    result = ES.index(
-        index='information',
-        doc_type=type,
-        body=query
-    )
-    return result['_id']
-
-def put_item(item: dict, doc_type:str, index: str):
+def put_item(item: dict, doc_type:str, index: str='memento'):
     while True:
         try:
             result = ES.index(
@@ -104,10 +85,4 @@ def put_item(item: dict, doc_type:str, index: str):
 # Default Connection Function
 
 def put_cluster(cluster, keyword, date_start, date_end):
-    cluster_id = put_item({
-        'keyword': keyword,
-        'date_start': date_start,
-        'date_end': date_end,
-    }, doc_type='cluster', index='information')
-    print (cluster_id)
-    put_item(cluster, doc_type=cluster_id, index='cluster')
+    put_item(cluster, doc_type='cluster')
