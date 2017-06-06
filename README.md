@@ -10,7 +10,7 @@ pip install -r requirements.txt
 ```
 python -c "
 from app import process;
-process(keyword, date_start, date_end)
+process(entity, date_start, date_end)
 "
 ```
 
