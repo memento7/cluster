@@ -7,12 +7,6 @@ SERVER_ES_INFO = {
     'port': 9200,
     'http_auth': (environ['MEMENTO_ELASTIC'], environ['MEMENTO_ELASTIC_PASS'])
 }
-SERVER_API = 'https://api.memento.live/persist/'
-SERVER_API_HEADER = { 
-    "Content-Type" : "application/json",
-    "charset": "utf-8",
-    "Authorization": environ['MEMENTO_BASIC']
-}
 
 MINIMUM_ITEMS = 8
 MINIMUM_CLUSTER = 4
