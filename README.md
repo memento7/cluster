@@ -3,7 +3,16 @@ memento cluster
 
 # Insatllation
 ```
-pip install -r requirements.txt
+apt-get update
+apt-get install python3 python3-pip git -y
+
+git clone https://github.com/mement7/cluster.git
+cd cluster
+pip3 install -r requirements.txt
+
+export MEMENTO_BASIC=''
+export MEMENTO_ELASTIC=''
+export MEMENTO_ELASTIC_PASS=''
 ```
 
 # Usage
