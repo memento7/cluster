@@ -63,7 +63,7 @@ def date_valid(date_text):
         datetime.datetime.strptime(date_text, '%Y.%m.%d')
         return True
     except ValueError:
-        raise ValueError("Incorrect data format, should be YYYY-MM-DD")
+        raise ValueError("Incorrect data format, should be YYYY.MM.DD")
 
 from connection import get_entities
 
