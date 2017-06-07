@@ -6,7 +6,7 @@ from KINCluster import KINCluster
 
 from pipeline import PipelineServer
 from connection import get_navernews, get_entities
-from utility import get_similar, filter_quote, Logging
+from utility import get_similar, filter_quote, Logging, date_valid
 import memento_settings as MS
 
 #NEED_CONCAT = DATE_JUMP < DATE_RANGE
@@ -14,6 +14,10 @@ def process(keyword: str,
             date_start: str,
             date_end: str):
     Logging.register('kin', '<<KINCluster>>: {}')
+    
+    if date_valid(date_start) and date_valid(date_end):
+        pass
+
     frame = get_navernews(keyword, date_start, date_end)
 
     Logging.logf('kin', '{} has {} news'.format(keyword, frame.shape[0]))
