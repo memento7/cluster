@@ -16,7 +16,6 @@ git clone https://github.com/memento7/cluster.git
 cd cluster
 pip3 install -r requirements.txt
 
-export MEMENTO_BASIC=''
 export MEMENTO_ELASTIC=''
 export MEMENTO_ELASTIC_PASS=''
 ```
@@ -25,7 +24,7 @@ export MEMENTO_ELASTIC_PASS=''
 ```
 python3 -c "
 from app import process;
-process(entity, date_start, date_end)
+process(entity, date_start, date_end, id)
 "
 ```
 
