@@ -22,40 +22,39 @@ def process(keyword: str,
     if not start_cluster(keyword, date_start, date_end, manage_id):
         raise 'already in process or done'
 
+    Logging.logf('kin', '{} {}-{}'.format(keyword, date_start, date_end))
+
     frame = get_navernews(keyword, date_start, date_end)
 
     Logging.logf('kin', '{} has {} news'.format(keyword, frame.shape[0]))
-    if frame.empty:
-        return;
 
-    simi_list = [" ".join([a, b, filter_quote(c), filter_quote(d)])
-                for a, b, c, d in zip(frame['title'],
-                                      frame['content'],
-                                      frame['title_quote'],
-                                      frame['content_quote'])]
-    frame.loc[:, 'similar'] = get_similar(simi_list, keyword)
+    if not frame.empty:
+        simi_list = [" ".join([a, b, filter_quote(c), filter_quote(d)])
+                    for a, b, c, d in zip(frame['title'],
+                                          frame['content'],
+                                          frame['title_quote'],
+                                          frame['content_quote'])]
+        frame.loc[:, 'similar'] = get_similar(simi_list, keyword)
 
-    rel_condition = (frame['similar'] > MS.MINIMUM_SIMILAR) & (frame['content'].str.contains(keyword))
-    rel_frame = frame.loc[rel_condition]
-    rel_size, _ = rel_frame.shape
+        rel_condition = (frame['similar'] > MS.MINIMUM_SIMILAR) & (frame['content'].str.contains(keyword))
+        rel_frame = frame.loc[rel_condition]
+        rel_size, _ = rel_frame.shape
 
-    Logging.logf('kin', '{} has related {} news'.format(keyword, rel_size))
+        Logging.logf('kin', '{} has related {} news'.format(keyword, rel_size))
 
-    if rel_size < MS.MINIMUM_ITEMS:
-        return
-
-    kin = KINCluster(PipelineServer(**{
-        'keyword': keyword,
-        'date_start': date_start,
-        'date_end': date_end,
-        'frame': rel_frame,
-        'manage_id': manage_id,
-    }), settings={
-        'EPOCH': 256,
-        'THRESHOLD': 1.10
-    })
-    kin.run()
-    del kin
+        if rel_size >= MS.MINIMUM_ITEMS:
+            kin = KINCluster(PipelineServer(**{
+                'keyword': keyword,
+                'date_start': date_start,
+                'date_end': date_end,
+                'frame': rel_frame,
+                'manage_id': manage_id,
+            }), settings={
+                'EPOCH': 256,
+                'THRESHOLD': 1.10
+            })
+            kin.run()
+            del kin
 
     close_cluster(keyword, date_start, date_end, manage_id)
 
