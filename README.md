@@ -22,10 +22,8 @@ export MEMENTO_ELASTIC_PASS=''
 
 # Usage
 ```
-python3 -c "
-from app import process;
-process(entity, date_start, date_end, id)
-"
+python3 -c "from app import process;
+process('문재인', '2015.01.01', '2015.01.31', 'id')"
 ```
 
 date format: "yyyy.mm.dd"
