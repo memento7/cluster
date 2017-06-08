@@ -10,8 +10,8 @@ from connection import put_cluster, put_bulk
 from utility import get_similar, get_emotion, filter_quote, Logging
 
 class PipelineServer(Pipeline):
-    def __init__(self, keyword, date_start, date_end, frame, manage_id):
-        self.keyword = keyword
+    def __init__(self, entity, date_start, date_end, frame, manage_id):
+        self.entity = entity
         self.date_start = date_start
         self.date_end = date_end
         self.frame = frame
@@ -53,7 +53,7 @@ class PipelineServer(Pipeline):
 
         def topic_rating(item, value):
             rating = value
-            if self.keyword in item.title:
+            if self.entity in item.title:
                 rating += 0.04
             for bound in [1000, 500, 250, 100, 50, 25]:
                 if item.reply_count > bound:
@@ -73,9 +73,9 @@ class PipelineServer(Pipeline):
         get_cc = lambda comments: map(lambda x: x['content'], comments)
 
         rate = get_memento_rate(ext.items)
-        emot = get_emotion("\n".join(map(lambda x: " ".join(get_cc(x.comments)), ext.items)), [self.keyword])
+        emot = get_emotion("\n".join(map(lambda x: " ".join(get_cc(x.comments)), ext.items)), [self.entity])
         
-        simi = get_similar(list(map(get_property, ext.items)), self.keyword)
+        simi = get_similar(list(map(get_property, ext.items)), self.entity)
         accuracy = np.std(simi) * 100
 
         comb = get_similar(list(map(get_property, ext.items)))
@@ -85,7 +85,7 @@ class PipelineServer(Pipeline):
         topic = ext.items[np.argmax(simi)]
 
         self.clusters.append({
-            'keyword': self.keyword,
+            'entity': self.entity,
             'date_start': datetime.strptime(self.date_start, '%Y.%m.%d'),
             'date_end': datetime.strptime(self.date_end, '%Y.%m.%d'),
             'manage_id': self.manage_id,

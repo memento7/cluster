@@ -10,7 +10,7 @@ from utility import get_similar, filter_quote, Logging, date_valid, start_cluste
 import memento_settings as MS
 
 #NEED_CONCAT = DATE_JUMP < DATE_RANGE
-def process(keyword: str,
+def process(entity: str,
             date_start: str,
             date_end: str,
             manage_id: str):
@@ -19,14 +19,14 @@ def process(keyword: str,
     if date_valid(date_start) and date_valid(date_end):
         pass
 
-    if not start_cluster(keyword, date_start, date_end, manage_id):
+    if not start_cluster(entity, date_start, date_end, manage_id):
         raise 'already in process or done'
 
-    Logging.logf('kin', '{} {}-{}'.format(keyword, date_start, date_end))
+    Logging.logf('kin', '{}_{}_{}'.format(entity, date_start, date_end))
 
-    frame = get_navernews(keyword, date_start, date_end)
+    frame = get_navernews(entity, date_start, date_end)
 
-    Logging.logf('kin', '{} has {} news'.format(keyword, frame.shape[0]))
+    Logging.logf('kin', '{} has {} news'.format(entity, frame.shape[0]))
 
     if not frame.empty:
         simi_list = [" ".join([a, b, filter_quote(c), filter_quote(d)])
@@ -34,17 +34,17 @@ def process(keyword: str,
                                           frame['content'],
                                           frame['title_quote'],
                                           frame['content_quote'])]
-        frame.loc[:, 'similar'] = get_similar(simi_list, keyword)
+        frame.loc[:, 'similar'] = get_similar(simi_list, entity)
 
-        rel_condition = (frame['similar'] > MS.MINIMUM_SIMILAR) & (frame['content'].str.contains(keyword))
+        rel_condition = (frame['similar'] > MS.MINIMUM_SIMILAR) & (frame['content'].str.contains(entity))
         rel_frame = frame.loc[rel_condition]
         rel_size, _ = rel_frame.shape
 
-        Logging.logf('kin', '{} has related {} news'.format(keyword, rel_size))
+        Logging.logf('kin', '{} has related {} news'.format(entity, rel_size))
 
         if rel_size >= MS.MINIMUM_ITEMS:
             kin = KINCluster(PipelineServer(**{
-                'keyword': keyword,
+                'entity': entity,
                 'date_start': date_start,
                 'date_end': date_end,
                 'frame': rel_frame,
@@ -56,7 +56,7 @@ def process(keyword: str,
             kin.run()
             del kin
 
-    close_cluster(keyword, date_start, date_end, manage_id)
+    close_cluster(entity, date_start, date_end, manage_id)
 
 if __name__ == '__main__':
     date_start = datetime(2000, 1, 1)

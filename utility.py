@@ -3,6 +3,7 @@ from collections import Counter
 from socket import gethostbyname, gethostname
 from itertools import chain
 from datetime import datetime
+from time import sleep
 
 from imp import reload
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -91,7 +92,7 @@ def get_emotion(text, entities, size=5):
 def start_cluster(entity, date_start, date_end, manage_id):
     info_id = "{}_{}_{}".format(entity, date_start, date_end)
     if not get_exist(info_id, doc_type='cluster', index='memento_info'):
-        put_item({
+        return put_item({
             'client': gethostbyname(gethostname()),
             'start_time': now(),
             'update_time': now(),
@@ -100,12 +101,17 @@ def start_cluster(entity, date_start, date_end, manage_id):
             'manage_id': manage_id,
             'finish': 'false',
         }, doc_type='cluster', index='memento_info', idx=info_id)
-        return True
     return False
 
 def close_cluster(entity, date_start, date_end, manage_id):
     info_id = "{}_{}_{}".format(entity, date_start, date_end)
-    result = get_item(info_id, doc_type='cluster', index='memento_info')
+    while True:
+        result = get_item(info_id, doc_type='cluster', index='memento_info')
+        if result:
+            break
+        print('can not find start info, retry')
+        sleep(1)
+
     if not result:
         raise 'error, can`t find start info'
 
