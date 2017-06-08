@@ -19,10 +19,10 @@ def process(keyword: str,
     if date_valid(date_start) and date_valid(date_end):
         pass
 
-    if not start_cluster(keyword, date_start, date_end):
+    if not start_cluster(keyword, date_start, date_end, manage_id):
         raise 'already in process or done'
 
-    frame = get_navernews(keyword, date_start, date_end, manage_id)
+    frame = get_navernews(keyword, date_start, date_end)
 
     Logging.logf('kin', '{} has {} news'.format(keyword, frame.shape[0]))
     if frame.empty:
