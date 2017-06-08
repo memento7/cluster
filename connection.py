@@ -5,6 +5,7 @@ import json
 
 import memento_settings as MS
 
+from elasticsearch import helpers
 from elasticsearch import Elasticsearch
 
 import requests
@@ -38,6 +39,33 @@ def get_scroll(query={}, doc_type='', index='memento'):
 def get_entities() -> dict:
     return get_scroll({}, 'namugrim')
 
+def get_exist(idx: str, doc_type: str, index='memento'):
+    return ES.search(
+                index=index,
+                doc_type=doc_type,
+                body = {
+                    'query': {
+                        'match': {
+                            '_id': idx
+                        }
+                    }
+                }
+            )['hits']['total']
+
+def get_item(idx: str, doc_type: str, index='memento'):
+    result = ES.search(
+                index=index,
+                doc_type=doc_type,
+                body = {
+                    'query': {
+                        'match': {
+                            '_id': idx
+                        }
+                    }
+                }
+            )['hits']
+    return result['hits'][0]['_source'] if result['total'] else None
+
 def get_navernews(keyword, date_start, date_end):
     news = get_scroll({
                 'query': {
@@ -66,20 +94,37 @@ def get_navernews(keyword, date_start, date_end):
 
     return pd.DataFrame(list(map(frame_filter, news.values())))
 
-def put_item(item: dict, doc_type:str, index: str='memento'):
+def update_item(update, idx, doc_type: str, index: str = 'memento'):
+        result = ES.update(index=index,
+                           doc_type=doc_type,
+                           id=idx,
+                           body=update)
+        return result['_id']
+
+def put_bulk(actions: list):
+    while True:
+        try:
+            helpers.bulk(ES, actions)
+            break
+        except:
+            print ('Connection Error wait for 2s')
+            sleep(2)
+            continue
+
+def put_item(item: dict, doc_type: str, idx: str = '', index='memento'):
     while True:
         try:
             result = ES.index(
                 index=index,
                 doc_type=doc_type,
-                body=item
+                body=item,
+                id=idx
             )
             break
         except: 
             print ('Connection Error wait for 2s')
             sleep(2)
             continue
-    print (index, doc_type, result['_id'])
     return result['_id']
 
 # Default Connection Function

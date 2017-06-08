@@ -1,12 +1,15 @@
 import logging
-
 from collections import Counter
+from socket import gethostbyname, gethostname
 from itertools import chain
+from datetime import datetime
 
 from imp import reload
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from konlpy.tag import Komoran
+
+from connection import get_entities, get_exist, get_item, put_item, update_item
 
 logging.getLogger("elasticsearch").setLevel(logging.CRITICAL)
 logging.getLogger("gensim").setLevel(logging.CRITICAL)
@@ -60,19 +63,23 @@ def filter_quote(quotes):
 
 def date_valid(date_text):
     try:
-        datetime.datetime.strptime(date_text, '%Y.%m.%d')
+        datetime.strptime(date_text, '%Y.%m.%d')
         return True
     except ValueError:
         raise ValueError("Incorrect data format, should be YYYY.MM.DD")
 
-from connection import get_entities
+def now():
+    return str(datetime.now())[:19]
 
 ENTITIES = get_entities()
-def get_similar(keyword, items):
-    entity = " ".join([tag['tag'] for tag in ENTITIES[keyword]['tags'][:100]])
+def get_similar(items, keyword=None):
+    if keyword:
+        items = [" ".join([tag['tag'] for tag in ENTITIES[keyword]['tags'][:100]])] + items
+
     tfidf_vectorizer = TfidfVectorizer()
-    tfidf_matrix_train = tfidf_vectorizer.fit_transform([entity] + items)
-    return cosine_similarity(tfidf_matrix_train[0:1], tfidf_matrix_train)[0][1:]
+    tfidf_matrix_train = tfidf_vectorizer.fit_transform(items)
+    result = cosine_similarity(tfidf_matrix_train[0:1], tfidf_matrix_train)[0]
+    return result[1:] if keyword else result
 
 TAGGER = Komoran()
 def get_emotion(text, entities, size=5):
@@ -80,3 +87,34 @@ def get_emotion(text, entities, size=5):
     keywords = list(map(lambda x: (x[0][0], x[1]), filter(lambda x: x[0][1] == 'XR', counter)))
     tags = [map(lambda x: (x['tag'], x['value']), ENTITIES[entity]['tags']) for entity in entities]
     return list(filter(lambda x: x[0] not in chain(*tags), keywords))[:size]
+
+def start_cluster(entity, date_start, date_end, manage_id):
+    info_id = "{}_{}_{}".format(entity, date_start, date_end)
+    if not get_exist(info_id, doc_type='cluster', index='memento_info'):
+        put_item({
+            'client': gethostbyname(gethostname()),
+            'start_time': now(),
+            'update_time': now(),
+            'date_start': date_start,
+            'date_end': date_end,
+            'manage_id': manage_id,
+            'finish': 'false',
+        }, doc_type='cluster', index='memento_info', idx=info_id)
+        return True
+    return False
+
+def close_cluster(entity, date_start, date_end, manage_id):
+    info_id = "{}_{}_{}".format(entity, date_start, date_end)
+    result = get_item(info_id, doc_type='cluster', index='memento_info')
+    if not result:
+        raise 'error, can`t find start info'
+
+    if result['date_start'] != date_start or result['date_end'] != date_end:
+        raise 'error, start info do not match end info'
+
+    update_item({
+        'doc': {
+            'update_time': now(),
+            'finish': 'true',
+        }
+    }, info_id, doc_type='cluster', index='memento_info')

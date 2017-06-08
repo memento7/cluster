@@ -17,7 +17,7 @@ class myItem(Item):
                          content_quote,
                          self.title,
                          self.content,
-                         self.keyword])
+                         self.entities])
 
     def __str__(self):
         title_quote = " ".join(self.title_quote)
@@ -26,4 +26,4 @@ class myItem(Item):
                          content_quote,
                          self.title,
                          self.content,
-                         self.keyword])
+                         self.entities])

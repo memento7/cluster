@@ -6,19 +6,23 @@ from KINCluster import KINCluster
 
 from pipeline import PipelineServer
 from connection import get_navernews, get_entities
-from utility import get_similar, filter_quote, Logging, date_valid
+from utility import get_similar, filter_quote, Logging, date_valid, start_cluster, close_cluster
 import memento_settings as MS
 
 #NEED_CONCAT = DATE_JUMP < DATE_RANGE
 def process(keyword: str,
             date_start: str,
-            date_end: str):
+            date_end: str,
+            manage_id: str):
     Logging.register('kin', '<<KINCluster>>: {}')
     
     if date_valid(date_start) and date_valid(date_end):
         pass
 
-    frame = get_navernews(keyword, date_start, date_end)
+    if not start_cluster(keyword, date_start, date_end):
+        raise 'already in process or done'
+
+    frame = get_navernews(keyword, date_start, date_end, manage_id)
 
     Logging.logf('kin', '{} has {} news'.format(keyword, frame.shape[0]))
     if frame.empty:
@@ -29,9 +33,9 @@ def process(keyword: str,
                                       frame['content'],
                                       frame['title_quote'],
                                       frame['content_quote'])]
-    frame.loc[:, 'similar'] = get_similar(keyword, simi_list)
+    frame.loc[:, 'similar'] = get_similar(simi_list, keyword)
 
-    rel_condition = (frame['similar'] > MS.MINIMUM_SIMILAR) & (frame['title'].str.contains(keyword))
+    rel_condition = (frame['similar'] > MS.MINIMUM_SIMILAR) & (frame['content'].str.contains(keyword))
     rel_frame = frame.loc[rel_condition]
     rel_size, _ = rel_frame.shape
 
@@ -44,12 +48,16 @@ def process(keyword: str,
         'keyword': keyword,
         'date_start': date_start,
         'date_end': date_end,
-        'frame': rel_frame
+        'frame': rel_frame,
+        'manage_id': manage_id,
     }), settings={
         'EPOCH': 256,
+        'THRESHOLD': 1.10
     })
     kin.run()
     del kin
+
+    close_cluster(keyword, date_start, date_end, manage_id)
 
 if __name__ == '__main__':
     date_start = datetime(2000, 1, 1)
