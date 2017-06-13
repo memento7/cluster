@@ -73,7 +73,10 @@ def now():
     return str(datetime.now())[:19]
 
 def get_tag_info(entity):
-    return get_item(index='memento',doc_type='namugrim',idx=get_item(index='memento',doc_type='entities',idx=entity)['flag'])['tags']
+    entity_info = get_item(index='memento',doc_type='entities',idx=entity)
+    if 'flag' not in entity:
+        return []
+    return get_item(index='memento',doc_type='namugrim',idx=entity_info['flag'])['tags']
 
 def get_similar(items, keyword=None):
     if keyword:
