@@ -10,7 +10,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from konlpy.tag import Komoran
 
-from connection import get_entities, get_exist, get_item, put_item, update_item
+from connection import get_exist, get_item, put_item, update_item
 
 logging.getLogger("elasticsearch").setLevel(logging.CRITICAL)
 logging.getLogger("gensim").setLevel(logging.CRITICAL)
@@ -72,10 +72,10 @@ def date_valid(date_text):
 def now():
     return str(datetime.now())[:19]
 
-ENTITIES = get_entities()
 def get_similar(items, keyword=None):
     if keyword:
-        items = [" ".join([tag['tag'] for tag in ENTITIES[keyword]['tags'][:100]])] + items
+        namugrim = get_item(index='memento',doc_type='namugrim',idx=get_item(index='memento',doc_type='entities',idx=keyword)['flag'])
+        items = [" ".join([tag['tag'] for tag in namugrim['tags'][:100]])] + items
 
     tfidf_vectorizer = TfidfVectorizer()
     tfidf_matrix_train = tfidf_vectorizer.fit_transform(items)
