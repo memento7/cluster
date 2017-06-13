@@ -72,10 +72,12 @@ def date_valid(date_text):
 def now():
     return str(datetime.now())[:19]
 
+def get_tag_info(entity):
+    return get_item(index='memento',doc_type='namugrim',idx=get_item(index='memento',doc_type='entities',idx=keyword)['flag'])['tags']
+
 def get_similar(items, keyword=None):
     if keyword:
-        namugrim = get_item(index='memento',doc_type='namugrim',idx=get_item(index='memento',doc_type='entities',idx=keyword)['flag'])
-        items = [" ".join([tag['tag'] for tag in namugrim['tags'][:100]])] + items
+        items = [" ".join([tag['tag'] for tag in get_tag_info(keyword)[:100]])] + items
 
     tfidf_vectorizer = TfidfVectorizer()
     tfidf_matrix_train = tfidf_vectorizer.fit_transform(items)
@@ -86,7 +88,7 @@ TAGGER = Komoran()
 def get_emotion(text, entities, size=5):
     counter = Counter([(word, tag) for word, tag in TAGGER.pos(text)]).most_common()
     keywords = list(map(lambda x: (x[0][0], x[1]), filter(lambda x: x[0][1] == 'XR', counter)))
-    tags = [map(lambda x: (x['tag'], x['value']), ENTITIES[entity]['tags']) for entity in entities]
+    tags = [map(lambda x: (x['tag'], x['value']), get_tag_info(entity)) for entity in entities]
     return list(filter(lambda x: x[0] not in chain(*tags), keywords))[:size]
 
 def start_cluster(entity, date_start, date_end, manage_id):
