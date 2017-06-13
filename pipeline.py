@@ -73,7 +73,7 @@ class PipelineServer(Pipeline):
         get_cc = lambda comments: map(lambda x: x['content'], comments)
 
         rate = get_memento_rate(ext.items)
-        emot = get_emotion("\n".join(map(lambda x: " ".join(get_cc(x.comments)), ext.items)), [self.entity])
+        emot = get_emotion("\n".join(map(lambda x: " ".join(get_cc(x.comments)), ext.items)))
         
         simi = get_similar(list(map(get_property, ext.items)), self.entity)
         accuracy = np.std(simi) * 100
