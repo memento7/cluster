@@ -88,7 +88,7 @@ TAGGER = Komoran()
 def get_emotion(text, size=10):
     counter = Counter([(word, tag) for word, tag in TAGGER.pos(text)]).most_common()
     keywords = list(map(lambda x: (x[0][0], x[1]), filter(lambda x: x[0][1] == 'XR', counter)))
-    return keywords[:size]
+    return keywords[:size] if keywords else [] 
 
 def start_cluster(entity, date_start, date_end, manage_id):
     info_id = "{}_{}_{}".format(entity, date_start, date_end)
