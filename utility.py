@@ -74,7 +74,7 @@ def now():
 
 def get_tag_info(entity):
     entity_info = get_item(index='memento',doc_type='entities',idx=entity)
-    if 'flag' not in entity:
+    if 'flag' not in entity_info:
         return []
     return get_item(index='memento',doc_type='namugrim',idx=entity_info['flag'])['tags']
 
