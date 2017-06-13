@@ -73,7 +73,7 @@ def now():
     return str(datetime.now())[:19]
 
 def get_tag_info(entity):
-    return get_item(index='memento',doc_type='namugrim',idx=get_item(index='memento',doc_type='entities',idx=keyword)['flag'])['tags']
+    return get_item(index='memento',doc_type='namugrim',idx=get_item(index='memento',doc_type='entities',idx=entity)['flag'])['tags']
 
 def get_similar(items, keyword=None):
     if keyword:
@@ -85,11 +85,10 @@ def get_similar(items, keyword=None):
     return result[1:] if keyword else result
 
 TAGGER = Komoran()
-def get_emotion(text, entities, size=5):
+def get_emotion(text, size=10):
     counter = Counter([(word, tag) for word, tag in TAGGER.pos(text)]).most_common()
     keywords = list(map(lambda x: (x[0][0], x[1]), filter(lambda x: x[0][1] == 'XR', counter)))
-    tags = [map(lambda x: (x['tag'], x['value']), get_tag_info(entity)) for entity in entities]
-    return list(filter(lambda x: x[0] not in chain(*tags), keywords))[:size]
+    return keywords[:size]
 
 def start_cluster(entity, date_start, date_end, manage_id):
     info_id = "{}_{}_{}".format(entity, date_start, date_end)
