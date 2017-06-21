@@ -19,8 +19,10 @@ def process(entity: str,
     if date_valid(date_start) and date_valid(date_end):
         pass
 
-    if not start_cluster(entity, date_start, date_end, manage_id):
-        raise 'already in process or done'
+    info_id = start_cluster(entity, date_start, date_end, manage_id)
+    if not info_id:
+        print ('already in process or done')
+        return
 
     Logging.logf('kin', '{}_{}_{}'.format(entity, date_start, date_end))
 
@@ -56,7 +58,7 @@ def process(entity: str,
             kin.run()
             del kin
 
-    close_cluster(entity, date_start, date_end, manage_id)
+    close_cluster(info_id, date_start, date_end, manage_id)
 
 if __name__ == '__main__':
     date_start = datetime(2000, 1, 1)
