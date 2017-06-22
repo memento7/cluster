@@ -94,33 +94,28 @@ def get_emotion(text, size=10):
     return keywords[:size] if keywords else [] 
 
 def start_cluster(entity, date_start, date_end, manage_id):
-    info_id = "{}_{}_{}".format(entity, date_start, date_end)
-    if not get_exist(info_id, doc_type='cluster', index='memento_info'):
-        return put_item({
-            'client': gethostbyname(gethostname()),
-            'start_time': now(),
-            'update_time': now(),
-            'date_start': date_start,
-            'date_end': date_end,
-            'manage_id': manage_id,
-            'finish': 'false',
-        }, doc_type='cluster', index='memento_info', idx=info_id)
-    return False
+    idx = put_item({
+        'client': gethostbyname(gethostname()),
+        'start_time': now(),
+        'update_time': now(),
+        'date_start': date_start,
+        'date_end': date_end,
+        'manage_id': manage_id,
+        'finish': 'false',
+    }, doc_type='cluster', index='memento_info')
+    return idx
 
-def close_cluster(entity, date_start, date_end, manage_id):
-    info_id = "{}_{}_{}".format(entity, date_start, date_end)
+def close_cluster(info_id, date_start, date_end, manage_id):
     while True:
         result = get_item(info_id, doc_type='cluster', index='memento_info')
         if result:
             break
-        print('can not find start info, retry')
-        sleep(1)
+        sleep(2)
+        print('wait for find start info')
 
-    if not result:
-        raise 'error, can`t find start info'
-
-    if result['date_start'] != date_start or result['date_end'] != date_end:
-        raise 'error, start info do not match end info'
+    if result['date_start'] != date_start or result['date_end'] != date_end or result['manage_id'] != manage_id:
+        print ('error, start info do not match end info')
+        return
 
     update_item({
         'doc': {
