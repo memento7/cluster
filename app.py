@@ -23,6 +23,7 @@ def process(entity: str,
     if not info_id:
         print ('already in process or done')
         return
+    print (info_id,'started!')
 
     Logging.logf('kin', '{}_{}_{}'.format(entity, date_start, date_end))
 

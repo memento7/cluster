@@ -12,8 +12,6 @@ from konlpy.tag import Komoran
 
 from connection import get_exist, get_item, put_item, update_item
 
-logging.getLogger("elasticsearch").setLevel(logging.CRITICAL)
-logging.getLogger("gensim").setLevel(logging.CRITICAL)
 class Logging:
     reload(logging)
     __log = logging
