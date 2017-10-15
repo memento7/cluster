@@ -17,6 +17,7 @@ class Logging:
     __log = logging
     __log.basicConfig(format='%(levelname)s:%(message)s',
                       filename='cluster.log',
+                      filemode='a',
                       level=logging.INFO)
     __logger = {
         'INFO': __log.info,
@@ -93,7 +94,7 @@ def get_emotion(text, size=10):
 
 def start_cluster(entity, date_start, date_end, manage_id):
     idx = put_item({
-        'client': gethostbyname(gethostname()),
+        'client': gethostname(),
         'start_time': now(),
         'update_time': now(),
         'date_start': date_start,
