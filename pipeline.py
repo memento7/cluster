@@ -19,7 +19,7 @@ class PipelineServer(Pipeline):
         self.clusters = []
 
     def __del__(self):
-        print (self.clusters, 'inserted!')
+        print (len(self.clusters), 'inserted!')
         put_bulk([{
             '_index': 'memento',
             '_type': 'cluster',
